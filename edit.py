@@ -1,11 +1,18 @@
 import json
 import os
-from moviepy import ImageClip, AudioFileClip, concatenate_videoclips
+from moviepy import ImageClip, AudioFileClip, concatenate_videoclips, VideoFileClip
 
 BEATS_JSON = 'beat_cache.json'        # JSON file with structure: {"beat_times": [t1, t2, ...]}
 AUDIO_FILE = 'C:/Users/Hrithik/OneDrive/Documents/AI/beatfinder/resources/audio/test.wav'
 IMAGES_DIR = 'resources/images/'                # Directory containing your 20 images
+CLIPS_DIR = 'resources/clips/marin'
 OUTPUT_VIDEO = 'slideshow.mp4'
+
+def zoom_in(t):
+    return 1 + 0.1*t  # Zoom-in.
+
+def zoom_out(t):
+    return 2 -0.2*t
 
 # 1. Load beat times from JSON
 def load_beat_times(json_path, start_sec=25.0, end_sec=30.0):
@@ -36,17 +43,19 @@ def make_image_clips(image_dir, durations, target_size=(720, 1280)):
         raise ValueError(f"Not enough images ({len(files)}) for beats ({len(durations)} segments)")
     clips = []
     for img_file, dur in zip(files, durations):
+        print(img_file)
         path = os.path.join(image_dir, img_file)
-        clip = ImageClip(path)
+        clip = VideoFileClip(path).subclipped(0,dur)
         # Center-crop to exact aspect ratio if needed
-        clip = clip.resized((target_size[0], target_size[1]))
-        clips.append(clip.with_duration(dur))
+        if img_file != '1.mp4':
+            clip = clip.resized(zoom_in)
+        clips.append(clip)
     return clips
 
 # 4. Assemble the slideshow and attach audio
 if __name__ == '__main__':
     START_SEC = 15.0
-    END_SEC = 30.0
+    END_SEC = 29.0
     TOTAL_DUR = END_SEC - START_SEC
 
     # Load and process beat offsets
@@ -54,7 +63,7 @@ if __name__ == '__main__':
     durations = compute_durations(beat_offsets, TOTAL_DUR)
 
     # Create image clips
-    clips = make_image_clips(IMAGES_DIR, durations)
+    clips = make_image_clips(CLIPS_DIR, durations)
 
     # Concatenate clips into a vertical slideshow
     slideshow = concatenate_videoclips(clips, method='compose')

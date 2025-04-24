@@ -89,4 +89,4 @@ def play_and_print_beats(audio_path):
     sd.wait()
 
 if __name__ == "__main__":
-    play_and_print_beats("resources/audio/test.mp3")
+    play_and_print_beats("resources/audio/test2.wav")
